@@ -19,7 +19,7 @@ function convertRemaining() {
     echo "[$chunk / $GPU] - Invoking converter"
     touch $chunkLock
     . venv/bin/activate
-    python3 coco-mistral-converer.py "chunks/$chunk" $GPU
+    python3 coco-mistral-converter.py caption "chunks/$chunk" $GPU
     rm $chunkLock
   done
 }

@@ -22,7 +22,7 @@ function refineAll() {
     echo "[$chunk / $GPU] - Invoking refine"
     touch $chunkLock
     . venv/bin/activate
-    python3 coco-mistral-converer.py refine "$SOURCE/$chunk" $GPU
+    python3 coco-mistral-converter.py refine "$SOURCE/$chunk" $GPU
     rm $chunkLock
   done
 }
