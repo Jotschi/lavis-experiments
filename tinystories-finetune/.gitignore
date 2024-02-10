@@ -1,0 +1,12 @@
+DeepSpeed
+datasets
+finetune-tinystories/finetuned
+finetune-tinystories/finetuned*
+finetune-gpt2xl
+
+finetune-tinystories/train*.txt
+finetune-tinystories/train*.csv
+finetune-tinystories/validation*.txt
+finetune-tinystories/validation*.csv
+model_e42
+wandb
