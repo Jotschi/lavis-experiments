@@ -19,11 +19,9 @@ from peft import LoraConfig
 from tqdm import tqdm
 from transformers import BitsAndBytesConfig, HfArgumentParser, TrainingArguments, AutoTokenizer
 from awq import AutoAWQForCausalLM
-
-
 from trl import SFTTrainer
 
-
+print(torch.cuda.is_available())
 tqdm.pandas()
 
 
