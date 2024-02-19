@@ -304,6 +304,8 @@ def main():
 
     tokenizer_kwargs = {
         "cache_dir": model_args.cache_dir,
+        "bos_token":"<|startoftext|>",
+        "eos_token":"<|endoftext|>",
         "use_fast": model_args.use_fast_tokenizer,
         "revision": model_args.model_revision,
         "use_auth_token": True if model_args.use_auth_token else None,

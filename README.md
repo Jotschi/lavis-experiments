@@ -58,3 +58,22 @@ deepspeed --num_gpus=1 run_clm.py \
 --learning_rate 5e-06 \
 --warmup_steps 100
 ```
+
+## BLIP2 Training
+
+![Architecture](blip2_architecture.jpg)
+
+## Q-Former Training
+
+```bash
+
+export CUDA_VISIBLE_DEVICES=0
+. venv/bin/activate
+
+# Regular
+python train.py --cfg-path lavis/projects/blip2/train/pretrain_stage2_tinystories33m.yaml
+
+# Use locally Finetuned Tinystories model
+python train.py --cfg-path lavis/projects/blip2/train/pretrain_stage2_tinystories33m-finetuned.yaml
+
+```
