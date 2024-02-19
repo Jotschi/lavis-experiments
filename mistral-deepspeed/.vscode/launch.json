@@ -8,7 +8,7 @@
             "name": "TrainAWQ",
             "type": "debugpy",
             "request": "launch",
-            "python": "${workspaceFolder}/venv/bin/python",
+            "python": "${workspaceFolder}/.venv/bin/python",
             "program": "sft_trainer_awq.py",
             "console": "integratedTerminal"
         }

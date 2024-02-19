@@ -61,7 +61,7 @@ class ScriptArguments:
         default=1000, metadata={"help": "Number of updates steps before two checkpoint saves"}
     )
     save_total_limit: Optional[int] = field(default=10, metadata={"help": "Limits total number of checkpoints."})
-    push_to_hub: Optional[bool] = field(default=True, metadata={"help": "Push the model to HF Hub"})
+    push_to_hub: Optional[bool] = field(default=False, metadata={"help": "Push the model to HF Hub"})
     hub_model_id: Optional[str] = field(default="mistral-7b-finetuned-ultrachat", metadata={"help": "The name of the model on HF Hub"})
 
 
@@ -99,10 +99,10 @@ else:
     device_map = None
     quantization_config = None
     torch_dtype = None
+#quantization_config=quantization_config,
 
 model = AutoAWQForCausalLM.from_pretrained(
     script_args.model_name,
-    quantization_config=quantization_config,
     device_map=device_map,
     trust_remote_code=script_args.trust_remote_code,
     torch_dtype=torch_dtype,
@@ -119,7 +119,7 @@ training_args = TrainingArguments(
     output_dir=script_args.output_dir,
     per_device_train_batch_size=script_args.batch_size,
     gradient_accumulation_steps=script_args.gradient_accumulation_steps,
-    gradient_checkpointing=True,
+    gradient_checkpointing=False,
     learning_rate=script_args.learning_rate,
     logging_steps=script_args.logging_steps,
     num_train_epochs=script_args.num_train_epochs,
