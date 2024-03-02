@@ -11,6 +11,15 @@
             "python": "${workspaceFolder}/.venv/bin/python",
             "program": "sft_trainer_awq.py",
             "console": "integratedTerminal"
+        },
+        {
+            "name": "Train4Bit",
+            "type": "debugpy",
+            "request": "launch",
+            "python": "${workspaceFolder}/.venv/bin/python",
+            "program": "sft_trainer_4bit.py",
+            "console": "integratedTerminal"
         }
+
     ]
 }

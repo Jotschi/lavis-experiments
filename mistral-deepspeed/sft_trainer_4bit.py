@@ -14,7 +14,7 @@ from typing import Optional
 
 import torch
 from accelerate import Accelerator
-from datasets import load_dataset
+from datasets import load_dataset, Features, Sequence, Value
 from peft import LoraConfig
 from tqdm import tqdm
 from transformers import AutoModelForCausalLM, BitsAndBytesConfig, HfArgumentParser, TrainingArguments, AutoTokenizer
@@ -34,9 +34,9 @@ class ScriptArguments:
 
     model_name: Optional[str] = field(default="mistralai/Mistral-7B-v0.1", metadata={"help": "the model name"})
     dataset_name: Optional[str] = field(
-        default="stingning/ultrachat", metadata={"help": "the dataset name"}
+        default="Jotschi/coco-karpathy-opus-de", metadata={"help": "the dataset name"}
     )
-    dataset_text_field: Optional[str] = field(default="text", metadata={"help": "the text field of the dataset"})
+    dataset_text_field: Optional[str] = field(default="caption", metadata={"help": "the text field of the dataset"})
     log_with: Optional[str] = field(default="wandb", metadata={"help": "use 'wandb' to log with wandb"})
     learning_rate: Optional[float] = field(default=2.0e-5, metadata={"help": "the learning rate"})
     batch_size: Optional[int] = field(default=1, metadata={"help": "the batch size"})
@@ -67,11 +67,13 @@ script_args = parser.parse_args_into_dataclasses()[0]
 
 # Step 1: Load the dataset
 tokenizer = AutoTokenizer.from_pretrained(script_args.model_name)
-dataset = load_dataset(script_args.dataset_name, split="train[:20000]")
-dataset = dataset.train_test_split(test_size=0.1)
+dataset = load_dataset(script_args.dataset_name)
+#dataset = dataset.train_test_split(test_size=0.1)
 
 def prepare_dialogue(example):
     text = ""
+    print("Setup dataset")
+    print(example)    
     for idx, msg in enumerate(example["data"]):
         if idx % 2 == 0:
             text += f"<|user|>\n{msg}{tokenizer.eos_token}\n"
@@ -80,7 +82,9 @@ def prepare_dialogue(example):
     example["text"] = text
     return example
 
-dataset = dataset.map(prepare_dialogue, num_proc=4, remove_columns=["id", "data"])
+dataset = dataset.map(prepare_dialogue, num_proc=4,
+                      remove_columns=["image_id", "caption", "image"])
+#features=Features({"texts": Sequence(Value("caption"))})
 
 # Step 2: Load the model
 if script_args.load_in_8bit and script_args.load_in_4bit:
