@@ -40,7 +40,7 @@ class ScriptArguments:
     log_with: Optional[str] = field(default="wandb", metadata={"help": "use 'wandb' to log with wandb"})
     learning_rate: Optional[float] = field(default=2.0e-5, metadata={"help": "the learning rate"})
     batch_size: Optional[int] = field(default=1, metadata={"help": "the batch size"})
-    seq_length: Optional[int] = field(default=512, metadata={"help": "Input sequence length"})
+    seq_length: Optional[int] = field(default=256, metadata={"help": "Input sequence length"})
     gradient_accumulation_steps: Optional[int] = field(
         default=8, metadata={"help": "the number of gradient accumulation steps"}
     )
@@ -66,27 +66,37 @@ parser = HfArgumentParser(ScriptArguments)
 script_args = parser.parse_args_into_dataclasses()[0]
 
 # Step 1: Load the dataset
+#device_map= "auto"
+# device_map=device_map
 tokenizer = AutoTokenizer.from_pretrained(script_args.model_name)
 dataset = load_dataset(script_args.dataset_name)
+#print(dataset.features)
 #dataset = dataset.train_test_split(test_size=0.1)
 
-def prepare_dialogue(example):
-    text = ""
-    print("Setup dataset")
-    print(example)    
-    for idx, msg in enumerate(example["caption"]):
-        if idx % 2 == 0:
-            text += f"<|user|>\n{msg}{tokenizer.eos_token}\n"
-        else:
-            text += f"<|assistant|>\n{msg}{tokenizer.eos_token}\n"
-    example["text"] = text
-    return example
+def chunk_examples(entry):
+    chunks = []
+    for caption in entry["caption"]:
+        chunks += caption
+    return {"caption": chunks}
 
-dataset = dataset.map(prepare_dialogue, num_proc=4,
+#dataset_with_length = squad_dataset.map(lambda x: {"length": len(x["context"])})
+
+
+chunked_dataset = dataset.map(chunk_examples, batched=True, num_proc=4,
                       remove_columns=["image_id", "caption", "image"])
 #features=Features({"texts": Sequence(Value("caption"))})
 
+#print(chunked_dataset["train"][:9]["caption"])
+
+#accelerator = Accelerator()
+#with accelerator.local_main_process_first():
+#    # This will be printed first by local process 0 then in a seemingly
+#    # random order by the other processes.
+#    print(f"This will be printed by process {accelerator.local_process_index}")
+#    val = input("Enter your value: ") 
+
 # Step 2: Load the model
+device_map = "auto"
 if script_args.load_in_8bit and script_args.load_in_4bit:
     raise ValueError("You can't load the model in 8 bits and 4 bits at the same time")
 elif script_args.load_in_8bit or script_args.load_in_4bit:
@@ -94,22 +104,30 @@ elif script_args.load_in_8bit or script_args.load_in_4bit:
         load_in_8bit=script_args.load_in_8bit, load_in_4bit=script_args.load_in_4bit
     )
     # Copy the model to each device
-    #device_map = {"": Accelerator().local_process_index}
-    device_map = None
+    device_map = {"": Accelerator().local_process_index}
+    #device_map = None
     torch_dtype = torch.bfloat16
 else:
-    device_map = None
+    device_map = {"": Accelerator().local_process_index}
+    #device_map = None
     quantization_config = None
     torch_dtype = None
 
+print("Using device: " + str(device_map))
 model = AutoModelForCausalLM.from_pretrained(
     script_args.model_name,
+    #device_map=device_map,
+    #low_cpu_mem_usage=False,
     quantization_config=quantization_config,
-    device_map=device_map,
     trust_remote_code=script_args.trust_remote_code,
     torch_dtype=torch_dtype,
 )
 
+print(device_map)
+print("Model: " + str(next(model.parameters()).device))
+
+if torch.cuda.current_device() == 0:
+    script_args.batch_size=4
 
 # Step 3: Define the training arguments
 training_args = TrainingArguments(
@@ -151,12 +169,13 @@ trainer = SFTTrainer(
     model=model,
     args=training_args,
     max_seq_length=script_args.seq_length,
-    train_dataset=dataset["train"],
-    eval_dataset=dataset["test"],
+    train_dataset=chunked_dataset["train"],
+    eval_dataset=chunked_dataset["test"],
     dataset_text_field=script_args.dataset_text_field,
     peft_config=peft_config,
     packing=True,
 )
+
 
 trainer.train()
 

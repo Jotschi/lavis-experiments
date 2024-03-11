@@ -8,6 +8,7 @@ attrs==23.2.0
 autoawq==0.2.2
 autoawq_kernels==0.0.5
 Babel==2.14.0
+bitsandbytes==0.43.0
 cattrs==23.2.3
 certifi==2024.2.2
 charset-normalizer==3.3.2
