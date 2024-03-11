@@ -74,7 +74,7 @@ def prepare_dialogue(example):
     text = ""
     print("Setup dataset")
     print(example)    
-    for idx, msg in enumerate(example["data"]):
+    for idx, msg in enumerate(example["caption"]):
         if idx % 2 == 0:
             text += f"<|user|>\n{msg}{tokenizer.eos_token}\n"
         else:
