@@ -55,7 +55,7 @@ class ScriptArguments:
     num_train_epochs: Optional[int] = field(default=3, metadata={"help": "the number of training epochs"})
     max_steps: Optional[int] = field(default=-1, metadata={"help": "the number of training steps"})
     save_steps: Optional[int] = field(
-        default=1000, metadata={"help": "Number of updates steps before two checkpoint saves"}
+        default=500, metadata={"help": "Number of updates steps before two checkpoint saves"}
     )
     save_total_limit: Optional[int] = field(default=10, metadata={"help": "Limits total number of checkpoints."})
     push_to_hub: Optional[bool] = field(default=False, metadata={"help": "Push the model to HF Hub"})
@@ -126,8 +126,8 @@ model = AutoModelForCausalLM.from_pretrained(
 print(device_map)
 print("Model: " + str(next(model.parameters()).device))
 
-if torch.cuda.current_device() == 0:
-    script_args.batch_size=4
+#if torch.cuda.current_device() == 0:
+#    script_args.batch_size=4
 
 # Step 3: Define the training arguments
 training_args = TrainingArguments(
