@@ -5,15 +5,20 @@ set -o errexit
 
 PORT=10300
 #LLM=mistralai/Mistral-7B-Instruct-v0.2
-LLM=/models/jotschi-mistral7b
-
-NAME=vllm-mistral
-
+LLM_NAME=$(basename $1)
+LLM="/models/$LLM_NAME"
 IMAGE="vllm/vllm-openai"
 VERSION="v0.3.3"
+NAME=vllm
+
+if [ ! -e models/$LLM_NAME ] ; then
+  echo "Could not find LLM in models folder"
+  exit 10
+fi
 docker pull $IMAGE:$VERSION
 
 
+echo "Using LLM $LLM"
 docker rm -f $NAME || true
 docker run -d --shm-size 16G \
       --name $NAME \

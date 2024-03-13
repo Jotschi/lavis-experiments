@@ -1,6 +1,6 @@
 venv
 .venv
 wandb
-mistral-deepspeed/output
+mistral-deepspeed/output*
 mistral-deepspeed/.cache
 mistral-deepspeed/models

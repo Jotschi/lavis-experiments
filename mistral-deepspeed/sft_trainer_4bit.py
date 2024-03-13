@@ -39,8 +39,8 @@ class ScriptArguments:
     dataset_text_field: Optional[str] = field(default="caption", metadata={"help": "the text field of the dataset"})
     log_with: Optional[str] = field(default="wandb", metadata={"help": "use 'wandb' to log with wandb"})
     learning_rate: Optional[float] = field(default=2.0e-5, metadata={"help": "the learning rate"})
-    batch_size: Optional[int] = field(default=1, metadata={"help": "the batch size"})
-    seq_length: Optional[int] = field(default=256, metadata={"help": "Input sequence length"})
+    batch_size: Optional[int] = field(default=2, metadata={"help": "the batch size"})
+    seq_length: Optional[int] = field(default=786, metadata={"help": "Input sequence length"})
     gradient_accumulation_steps: Optional[int] = field(
         default=8, metadata={"help": "the number of gradient accumulation steps"}
     )
@@ -49,8 +49,8 @@ class ScriptArguments:
     use_peft: Optional[bool] = field(default=True, metadata={"help": "Wether to use PEFT or not to train adapters"})
     trust_remote_code: Optional[bool] = field(default=False, metadata={"help": "Enable `trust_remote_code`"})
     output_dir: Optional[str] = field(default="output", metadata={"help": "the output directory"})
-    peft_lora_r: Optional[int] = field(default=64, metadata={"help": "the r parameter of the LoRA adapters"})
-    peft_lora_alpha: Optional[int] = field(default=16, metadata={"help": "the alpha parameter of the LoRA adapters"})
+    peft_lora_r: Optional[int] = field(default=256, metadata={"help": "the r parameter of the LoRA adapters"})
+    peft_lora_alpha: Optional[int] = field(default=8, metadata={"help": "the alpha parameter of the LoRA adapters"})
     logging_steps: Optional[int] = field(default=5, metadata={"help": "the number of logging steps"})
     num_train_epochs: Optional[int] = field(default=3, metadata={"help": "the number of training epochs"})
     max_steps: Optional[int] = field(default=-1, metadata={"help": "the number of training steps"})
@@ -76,7 +76,7 @@ dataset = load_dataset(script_args.dataset_name)
 def chunk_examples(entry):
     chunks = []
     for caption in entry["caption"]:
-        chunks += caption
+        chunks += f"{caption}{tokenizer.eos_token}\n"
     return {"caption": chunks}
 
 #dataset_with_length = squad_dataset.map(lambda x: {"length": len(x["context"])})
