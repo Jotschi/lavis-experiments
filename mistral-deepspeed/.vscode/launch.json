@@ -19,6 +19,14 @@
             "python": "${workspaceFolder}/venv/bin/python",
             "program": "sft_trainer_4bit.py",
             "console": "integratedTerminal"
+        },
+        {
+            "name": "Test Dataset",
+            "type": "debugpy",
+            "request": "launch",
+            "python": "${workspaceFolder}/venv/bin/python",
+            "program": "test-dataset.py",
+            "console": "integratedTerminal"
         }
 
     ]

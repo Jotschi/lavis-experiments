@@ -32,28 +32,28 @@ class ScriptArguments:
     The name of the Casual LM model we wish to fine with SFTTrainer
     """
 
-    model_name: Optional[str] = field(default="mistralai/Mistral-7B-v0.1", metadata={"help": "the model name"})
+    model_name: Optional[str] = field(default="mistralai/Mistral-7B-v0.1", metadata={"help": "The model name"})
     dataset_name: Optional[str] = field(
-        default="Jotschi/coco-karpathy-opus-de", metadata={"help": "the dataset name"}
+        default="Jotschi/coco-karpathy-opus-de", metadata={"help": "The dataset name"}
     )
-    dataset_text_field: Optional[str] = field(default="caption", metadata={"help": "the text field of the dataset"})
-    log_with: Optional[str] = field(default="wandb", metadata={"help": "use 'wandb' to log with wandb"})
-    learning_rate: Optional[float] = field(default=2.0e-5, metadata={"help": "the learning rate"})
-    batch_size: Optional[int] = field(default=2, metadata={"help": "the batch size"})
-    seq_length: Optional[int] = field(default=786, metadata={"help": "Input sequence length"})
+    dataset_text_field: Optional[str] = field(default="caption", metadata={"help": "The text field of the dataset"})
+    log_with: Optional[str] = field(default="wandb", metadata={"help": "Use 'wandb' to log with wandb"})
+    learning_rate: Optional[float] = field(default=2.0e-5, metadata={"help": "The learning rate"})
+    batch_size: Optional[int] = field(default=4, metadata={"help": "The batch size"})
+    seq_length: Optional[int] = field(default=512, metadata={"help": "Input sequence length"})
     gradient_accumulation_steps: Optional[int] = field(
-        default=8, metadata={"help": "the number of gradient accumulation steps"}
+        default=8, metadata={"help": "The number of gradient accumulation steps"}
     )
-    load_in_8bit: Optional[bool] = field(default=False, metadata={"help": "load the model in 8 bits precision"})
-    load_in_4bit: Optional[bool] = field(default=True, metadata={"help": "load the model in 4 bits precision"})
-    use_peft: Optional[bool] = field(default=True, metadata={"help": "Wether to use PEFT or not to train adapters"})
+    load_in_8bit: Optional[bool] = field(default=False, metadata={"help": "Load the model in 8 bits precision"})
+    load_in_4bit: Optional[bool] = field(default=True, metadata={"help": "Load the model in 4 bits precision"})
+    use_peft: Optional[bool] = field(default=True, metadata={"help": "Whether to use PEFT or not to train adapters"})
     trust_remote_code: Optional[bool] = field(default=False, metadata={"help": "Enable `trust_remote_code`"})
-    output_dir: Optional[str] = field(default="output", metadata={"help": "the output directory"})
-    peft_lora_r: Optional[int] = field(default=256, metadata={"help": "the r parameter of the LoRA adapters"})
-    peft_lora_alpha: Optional[int] = field(default=8, metadata={"help": "the alpha parameter of the LoRA adapters"})
-    logging_steps: Optional[int] = field(default=5, metadata={"help": "the number of logging steps"})
-    num_train_epochs: Optional[int] = field(default=3, metadata={"help": "the number of training epochs"})
-    max_steps: Optional[int] = field(default=-1, metadata={"help": "the number of training steps"})
+    output_dir: Optional[str] = field(default="output", metadata={"help": "The output directory"})
+    peft_lora_r: Optional[int] = field(default=512, metadata={"help": "The r parameter of the LoRA adapters"})
+    peft_lora_alpha: Optional[int] = field(default=8, metadata={"help": "The alpha parameter of the LoRA adapters"})
+    logging_steps: Optional[int] = field(default=5, metadata={"help": "The number of logging steps"})
+    num_train_epochs: Optional[int] = field(default=3, metadata={"help": "The number of training epochs"})
+    max_steps: Optional[int] = field(default=-1, metadata={"help": "The number of training steps"})
     save_steps: Optional[int] = field(
         default=500, metadata={"help": "Number of updates steps before two checkpoint saves"}
     )
@@ -66,27 +66,19 @@ parser = HfArgumentParser(ScriptArguments)
 script_args = parser.parse_args_into_dataclasses()[0]
 
 # Step 1: Load the dataset
-#device_map= "auto"
-# device_map=device_map
 tokenizer = AutoTokenizer.from_pretrained(script_args.model_name)
-dataset = load_dataset(script_args.dataset_name)
-#print(dataset.features)
-#dataset = dataset.train_test_split(test_size=0.1)
-
-def chunk_examples(entry):
-    chunks = []
-    for caption in entry["caption"]:
-        chunks += f"{caption}{tokenizer.eos_token}\n"
-    return {"caption": chunks}
-
-#dataset_with_length = squad_dataset.map(lambda x: {"length": len(x["context"])})
+coco_dataset = load_dataset(script_args.dataset_name)
 
 
-chunked_dataset = dataset.map(chunk_examples, batched=True, num_proc=4,
+def chunk_examples(batch):
+    all_captions = []
+    for captions in batch["caption"]:
+        for caption in captions:
+            all_captions += [f"{caption}{tokenizer.eos_token}\n"]
+    return {"caption": all_captions}
+
+chunked_dataset = coco_dataset.map(chunk_examples, batched=True, num_proc=4,
                       remove_columns=["image_id", "caption", "image"])
-#features=Features({"texts": Sequence(Value("caption"))})
-
-#print(chunked_dataset["train"][:9]["caption"])
 
 #accelerator = Accelerator()
 #with accelerator.local_main_process_first():
