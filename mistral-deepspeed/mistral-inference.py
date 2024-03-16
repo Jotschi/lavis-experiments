@@ -1,7 +1,8 @@
 from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig, pipeline
 import torch
+import sys
 
-model_name = "models/checkpoint-2000"
+model_name = sys.argv[1]
 
 #    bnb_4bit_use_double_quant=True,
 #    bnb_4bit_quant_type="nf4",
@@ -30,7 +31,7 @@ pipe = pipeline(
     device_map="auto"
 )
 
-prompts = ["Ein Mann und eine Frau stehen", "Ein Haus steht", "Das auto ist", "Ein Teller mit", "Das Kind hat", "Der opa wirft", "Ein Ball"]
+prompts = ["Ein Mann und eine Frau stehen", "Ein Haus steht", "Das Auto ist", "Ein Teller mit", "Das Kind hat", "Der opa wirft", "Ein Ball", "Eine Frau, die einen großen" ]
 
 for prompt in prompts:
     sequences = pipe(

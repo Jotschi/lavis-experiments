@@ -48,7 +48,7 @@ class ScriptArguments:
     load_in_4bit: Optional[bool] = field(default=True, metadata={"help": "Load the model in 4 bits precision"})
     use_peft: Optional[bool] = field(default=True, metadata={"help": "Whether to use PEFT or not to train adapters"})
     trust_remote_code: Optional[bool] = field(default=False, metadata={"help": "Enable `trust_remote_code`"})
-    output_dir: Optional[str] = field(default="dual-r256-b4-a16-seq512-l2.0e-5", metadata={"help": "The output directory"})
+    output_dir: Optional[str] = field(default="r256-b4-a16-seq512-l2.0e-5_no_eos", metadata={"help": "The output directory"})
     peft_lora_r: Optional[int] = field(default=256, metadata={"help": "The r parameter of the LoRA adapters"})
     peft_lora_alpha: Optional[int] = field(default=16, metadata={"help": "The alpha parameter of the LoRA adapters"})
     logging_steps: Optional[int] = field(default=5, metadata={"help": "The number of logging steps"})
@@ -74,8 +74,8 @@ def chunk_examples(batch):
     all_captions = []
     for captions in batch["caption"]:
         for caption in captions:
-            #all_captions += [caption]
-            all_captions += [f"{caption}{tokenizer.eos_token}"]
+            all_captions += [caption]
+            #all_captions += [f"{caption}{tokenizer.eos_token}"]
     return {"caption": all_captions}
 
 chunked_dataset = coco_dataset.map(chunk_examples, batched=True, num_proc=4,
