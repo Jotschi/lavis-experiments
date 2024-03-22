@@ -42,16 +42,16 @@ class ScriptArguments:
     batch_size: Optional[int] = field(default=4, metadata={"help": "The batch size"})
     seq_length: Optional[int] = field(default=512, metadata={"help": "Input sequence length"})
     gradient_accumulation_steps: Optional[int] = field(
-        default=8, metadata={"help": "The number of gradient accumulation steps"}
+        default=2, metadata={"help": "The number of gradient accumulation steps"}
     )
     load_in_8bit: Optional[bool] = field(default=False, metadata={"help": "Load the model in 8 bits precision"})
     load_in_4bit: Optional[bool] = field(default=True, metadata={"help": "Load the model in 4 bits precision"})
     use_peft: Optional[bool] = field(default=True, metadata={"help": "Whether to use PEFT or not to train adapters"})
     trust_remote_code: Optional[bool] = field(default=False, metadata={"help": "Enable `trust_remote_code`"})
-    output_dir: Optional[str] = field(default="r256-b4-a16-seq512-l2.0e-5_no_eos", metadata={"help": "The output directory"})
+    output_dir: Optional[str] = field(default="r256-b4-a16-seq512-l2.0e-5_prefix", metadata={"help": "The output directory"})
     peft_lora_r: Optional[int] = field(default=256, metadata={"help": "The r parameter of the LoRA adapters"})
     peft_lora_alpha: Optional[int] = field(default=16, metadata={"help": "The alpha parameter of the LoRA adapters"})
-    logging_steps: Optional[int] = field(default=5, metadata={"help": "The number of logging steps"})
+    logging_steps: Optional[int] = field(default=25, metadata={"help": "The number of logging steps"})
     num_train_epochs: Optional[int] = field(default=3, metadata={"help": "The number of training epochs"})
     max_steps: Optional[int] = field(default=-1, metadata={"help": "The number of training steps"})
     save_steps: Optional[int] = field(
@@ -69,13 +69,13 @@ script_args = parser.parse_args_into_dataclasses()[0]
 tokenizer = AutoTokenizer.from_pretrained(script_args.model_name)
 coco_dataset = load_dataset(script_args.dataset_name)
 
+prefix = "Bildbeschreibung: "
 
 def chunk_examples(batch):
     all_captions = []
     for captions in batch["caption"]:
         for caption in captions:
-            all_captions += [caption]
-            #all_captions += [f"{caption}{tokenizer.eos_token}"]
+            all_captions += [ prefix + caption]
     return {"caption": all_captions}
 
 chunked_dataset = coco_dataset.map(chunk_examples, batched=True, num_proc=4,
@@ -139,7 +139,7 @@ training_args = TrainingArguments(
     hub_model_id=script_args.hub_model_id,
     bf16=True,
     lr_scheduler_type="cosine",
-    warmup_ratio=0.1,
+    warmup_ratio=0.03,
     evaluation_strategy="epoch",
     logging_first_step=True,
 

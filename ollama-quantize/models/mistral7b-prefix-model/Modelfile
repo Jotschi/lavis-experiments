@@ -1,0 +1,2 @@
+FROM ./q4_0.bin
+TEMPLATE {{ .Prompt }}

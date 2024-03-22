@@ -3,7 +3,7 @@ import openai
 import streamlit as st
 
 BASE_URL = "http://localhost:10300/v1"
-MODEL = "/models/checkpoint-2000"
+MODEL = "/models/r256-b4-a16-seq512-l2.0e-5_prefix-8500"
 
 st.title(MODEL)
 client = openai.OpenAI(

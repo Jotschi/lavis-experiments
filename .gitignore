@@ -4,3 +4,4 @@ wandb
 mistral-deepspeed/output*
 mistral-deepspeed/.cache
 mistral-deepspeed/models
+*.bin
